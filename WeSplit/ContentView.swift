@@ -8,8 +8,72 @@
 import SwiftUI
 
 struct ContentView: View {
+    @State private var checkAmount = 0.0
+    @State private var numberOfPeople = 2
+    @State private var tipPercentage = 20
+    //to make the numpad go away, you have to check if it is in focus.
+    @FocusState private var amountIsFocused: Bool
+    
+    let tipPercentages = [10, 15, 20, 25, 0]
+    
+    var totalPerPerson: Double {
+        //add 2 to people count because of the picker ranging from 2 to 99 and our number of People start at 2.
+        let peopleCount = Double(numberOfPeople + 2)
+        let tipSelection = Double(tipPercentage)
+        
+        let tipValue = checkAmount / 100 * tipSelection
+        let grandTotal = checkAmount + tipValue
+        let amountPerPerson = grandTotal / peopleCount
+        
+        return amountPerPerson
+    }
+    
     var body: some View {
-       Text("Hello, world.")
+        NavigationStack {
+            Form {
+                Section {
+                    //Locale takes the users preferences, in this case the currency. Currency is seen as optional as the user may not have a preferred currency set up. This is why there is a default value of USD set.
+                    TextField("Amount", value: $checkAmount, format: .currency(code: Locale.current.currency?.identifier ?? "USD"))
+                    //We don't want the user to write text in the text field, so we defined that another kind of keyboard type is shown when you click in the text field.
+                        .keyboardType(.decimalPad)
+                        .focused($amountIsFocused) // Check if keyboard is in focus
+                    
+                    Picker("Number of people", selection: $numberOfPeople) {
+                        ForEach(2..<100) {
+                            Text("\($0) people")
+                        }
+                    }
+                    //to implement the picker style, have to wrap the sections in a navigation stack which is making sure, different views can be loaded.
+                    //.pickerStyle(.navigationLink)
+                }
+                
+                //to add a title to a section, simply put a string into parantheses.
+                Section ("How much do you want to tip?"){
+ 
+                    
+                    Picker("Tip percentage", selection: $tipPercentage) {
+                        ForEach(tipPercentages, id: \.self) {
+                            Text($0, format: .percent)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                }
+                
+                Section {
+                    Text(totalPerPerson, format: .currency(code: Locale.current.currency?.identifier ?? "USD"))
+                }
+            }
+            //Titles inside the nav stack, because there can be different views inside the nav stack, which allows for the titles to change dynamicially and to have nice "back" buttons with the corresponding title.
+            .navigationTitle("WeSplit")
+            //add a button in the toolbar area if the numpad is onscreen (in focus) to make it disapper.
+            .toolbar {
+                if amountIsFocused {
+                    Button("Done") {
+                        amountIsFocused = false
+                    }
+                }
+            }
+        }
     }
 }
 
