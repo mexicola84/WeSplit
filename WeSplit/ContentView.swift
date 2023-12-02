@@ -7,6 +7,22 @@
 
 import SwiftUI
 
+//Day 24 challenge: if you choose 0% tip, the total amount including tip is colored red. Therefore there is a ViewModifier and an extension that's making the VM easy to implement.
+struct Knauser: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .foregroundStyle(.red)
+    }
+}
+
+extension View {
+    func knauserStyle() -> some View {
+        modifier(Knauser())
+    }
+}
+
+
+
 struct ContentView: View {
     @State private var checkAmount = 0.0
     @State private var numberOfPeople = 2
@@ -69,7 +85,13 @@ struct ContentView: View {
                 }
                 
                 Section ("Total Amount including Tip") {
-                    Text(totalAmount, format: .currency(code: Locale.current.currency?.identifier ?? "USD"))
+                    if tipPercentage == 0 {
+                        // if tip is 0% the total amount is shown in red.
+                        Text(totalAmount, format: .currency(code: Locale.current.currency?.identifier ?? "USD"))
+                        .knauserStyle()
+                    } else {
+                        Text(totalAmount, format: .currency(code: Locale.current.currency?.identifier ?? "USD"))
+                    }
                 }
                 
                 Section ("Amount per person"){
